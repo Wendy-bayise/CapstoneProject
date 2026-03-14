@@ -1,3 +1,10 @@
+/*
+Booking.java
+Booking POJO with builder
+Author: Charmaine Dlamini-222056401
+Date: 13/03/2026
+ */
+
 package za.ac.cput.domain;
 
 public class Booking {
@@ -62,16 +69,15 @@ public class Booking {
 
     @Override
     public String toString() {
-        return "Booking{" +
-                "bookingId='" + bookingId + '\'' +
-                ", sessionId='" + sessionId + '\'' +
-                ", sessionTime='" + sessionTime + '\'' +
-                ", sessionType='" + sessionType + '\'' +
-                ", duration='" + duration + '\'' +
-                ", studentNumber='" + studentNumber + '\'' +
-                ", subjectCode='" + subjectCode + '\'' +
-                ", tutorId='" + tutorId + '\'' +
-                '}';
+        return "Booking" +
+                "\nBooking Id: " + bookingId +
+                "\nSession Id: " + sessionId +
+                "\nSession Time: " + sessionTime +
+                "\nSession Type: " + sessionType +
+                "\nDuration: " + duration +
+                "\nStudent Number: " + studentNumber +
+                "\nSubject Code: " + subjectCode +
+                "\nTutor Id: " + tutorId;
     }
 
     public static class Builder {
