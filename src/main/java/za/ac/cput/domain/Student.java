@@ -47,15 +47,14 @@ public class Student {
 
     @Override
     public String toString() {
-        return "Student{" +
-                "studentNumber='" + studentNumber + '\'' +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", email='" + email + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                ", levelOfStudy='" + levelOfStudy + '\'' +
-                ", password='" + password + '\'' +
-                '}';
+        return "==Student Details==" +
+                "\nstudent Number: " + studentNumber +
+                "\nFirst Name: " + firstName +
+                "\nLast Name: " + lastName +
+                "\nEmail: " + email +
+                "\nPhone Number: " + phoneNumber +
+                "\nLevel Of Study: " + levelOfStudy +
+                "\nPassword: " + password;
     }
     public static class Builder{
         private String studentNumber;
