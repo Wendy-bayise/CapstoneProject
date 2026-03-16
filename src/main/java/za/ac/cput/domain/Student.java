@@ -1,4 +1,10 @@
 package za.ac.cput.domain;
+/*
+Student.java
+Student POJO with builder
+Author: Sabelo Ceza - 220094489
+Date: 13/03/2026
+ */
 
 public class Student {
     private String studentNumber;
