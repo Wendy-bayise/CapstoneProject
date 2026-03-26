@@ -1,6 +1,13 @@
 package za.ac.cput.util;
 import org.apache.commons.validator.routines.*;
 
+/*
+Helper.java
+Helper class
+Sabelo Ceza - 220094489
+Date: 16/03/2026
+*/
+
 public class Helper {
     public static boolean isNullOrEmpty(String str){
         if(str == null || str.isEmpty()){
