@@ -1,5 +1,10 @@
 package za.ac.cput.domain;
-
+/*
+Admin.java
+Admin POJO with builder
+Author: Thimna Booi - 230232108
+Date: 13/03/2026
+ */
 public class Admin {
 
     private String id;
