@@ -34,7 +34,7 @@ public class PaymentController {
     public void delete(@PathVariable String paymentRef) {
         paymentService.delete(paymentRef);
     }
-    @GetMapping("/getall")
+    @GetMapping("/getAll")
     public List<Payment> getAll() {
         return paymentService.getAll();
     }

@@ -43,7 +43,7 @@ public class TutorController {
         return service.delete(tutorId);
     }
 
-    @GetMapping("/getall")
+    @GetMapping("/getAll")
     public List <Tutor> getAll() {
         return service.getAll();
     }

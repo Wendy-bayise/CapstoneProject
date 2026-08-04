@@ -41,7 +41,7 @@ public class StudentController {
     public void delete(@PathVariable String studentNumber) {
         studentService.delete(studentNumber);
     }
-    @GetMapping("/getall")
+    @GetMapping("/getAll")
     public List<Student> getAll() {
         return studentService.getAll();
     }
