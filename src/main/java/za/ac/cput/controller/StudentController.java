@@ -30,9 +30,8 @@ public class StudentController {
         return studentService.create(student);
     }
     @GetMapping("/read/{studentNumber}")
-    public Student read(@PathVariable String studentNumber) {
-        return studentService.read(studentNumber);
-    }
+    public Student read(@PathVariable("studentNumber") String studentNumber) {
+        return studentService.read(studentNumber);}
     @PutMapping("/update")
     public Student update(@RequestBody Student student) {
         return studentService.update(student);
@@ -41,8 +40,8 @@ public class StudentController {
     public void delete(@PathVariable String studentNumber) {
         studentService.delete(studentNumber);
     }
-    @GetMapping("/getAll")
-    public List<Student> getAll() {
+    @GetMapping("/getall")
+    public List<Student> getall() {
         return studentService.getAll();
     }
 
