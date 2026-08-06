@@ -40,8 +40,8 @@ public class StudentController {
     public void delete(@PathVariable String studentNumber) {
         studentService.delete(studentNumber);
     }
-    @GetMapping("/getall")
-    public List<Student> getall() {
+    @GetMapping("/getAll")
+    public List<Student> getAll() {
         return studentService.getAll();
     }
 

@@ -79,11 +79,11 @@ class StudentControllerTest {
     @Test
     void b_read() {
         String url = BASE_URL + "/read/" + student.getStudentNumber();
-
-        ResponseEntity<String> response =
-                restTemplate.getForEntity(url, String.class);
-        System.out.println(response.getStatusCode());
-        System.out.println(response.getBody());
+        ResponseEntity<Student> createdStud =
+                restTemplate.getForEntity(url, Student.class);
+        assertNotNull(createdStud);
+        System.out.println(createdStud.getStatusCode());
+        System.out.println(createdStud.getBody());
     }
 
     @Test
@@ -113,8 +113,8 @@ class StudentControllerTest {
     }
 
     @Test
-    void d_getall() {
-        String url = BASE_URL +"/getall";
+    void d_getAll() {
+        String url = BASE_URL +"/getAll";
         ResponseEntity <Student[]>  response = this.restTemplate.getForEntity(url, Student[].class);
         assertNotNull(response.getBody());
         System.out.println("Get All: " );

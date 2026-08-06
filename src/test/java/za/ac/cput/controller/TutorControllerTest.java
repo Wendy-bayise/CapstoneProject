@@ -47,7 +47,7 @@ class TutorControllerTest {
         assertNotNull(createdTutor);
         assertEquals(tutor.getTutorId(), createdTutor.getTutorId());
         tutor = createdTutor;
-                System.out.println("Created Tutor: "+ createdTutor);
+        System.out.println("Created Tutor: "+ createdTutor);
 
     }
 
@@ -72,7 +72,7 @@ class TutorControllerTest {
     }
     @Test
     void d_getAll() {
-        String url = BASE_URL + "/getall";
+        String url = BASE_URL + "/getAll";
         ResponseEntity<Tutor[]> response = this.restTemplate.getForEntity(url, Tutor[].class);
         assertNotNull(response.getBody());
         System.out.println("Get all Tutors:");

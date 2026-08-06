@@ -87,7 +87,7 @@ class PaymentControllerTest {
 
     @Test
     void d_getAll() {
-        String url = BASE_URL + "/getall";
+        String url = BASE_URL + "/getAll";
         ResponseEntity<Payment[]> response = this.restTemplate.getForEntity(url, Payment[].class);
         assertNotNull(response.getBody());
         System.out.println("Get All Payments:");
