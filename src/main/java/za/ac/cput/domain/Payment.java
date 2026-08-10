@@ -8,6 +8,7 @@ Author: Safiya Elmi
 Date: 22 March 2026
 */
 
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -23,6 +24,7 @@ public class Payment {
 
     @OneToOne
     @JoinColumn(name = "bookingId")
+    @JsonBackReference("booking-payment")
     private Booking booking;
 
     protected Payment() {

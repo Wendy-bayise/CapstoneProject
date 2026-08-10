@@ -3,17 +3,20 @@ Booking.java
 Booking POJO with builder
 Author: Charmaine Dlamini-222056401
 Date: 13/03/2026
- */
+*/
 
 package za.ac.cput.domain;
 
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 public class Booking {
+
     @Id
     private String bookingId;
+
     private String subjectCode;
     private String sessionType;
     private String duration;
@@ -21,19 +24,29 @@ public class Booking {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "studentNumber")
+    // Prevents recursive JSON serialization by stopping the Student
+    // from being serialized through Booking
+    @JsonBackReference("student-bookings")
     private Student student;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tutorId")
+    // Prevents recursive JSON serialization by stopping the Tutor
+    // from being serialized through Booking
+    @JsonBackReference("tutor-bookings")
     private Tutor tutor;
 
-    @OneToOne(mappedBy = "booking",
+    @OneToOne(
+            mappedBy = "booking",
             cascade = CascadeType.ALL,
-            orphanRemoval = true)
+            orphanRemoval = true
+    )
+    // Allows Payment to be serialized while preventing the Booking
+    // from being serialized again through Payment
+    @JsonManagedReference("booking-payment")
     private Payment payment;
 
     protected Booking() {
-
     }
 
     private Booking(Builder builder) {
@@ -45,7 +58,6 @@ public class Booking {
         this.student = builder.student;
         this.tutor = builder.tutor;
         this.payment = builder.payment;
-
     }
 
     public String getBookingId() {
@@ -80,21 +92,40 @@ public class Booking {
         return payment;
     }
 
-
-
     @Override
     public String toString() {
+        String studentNumber = "null";
+        String tutorId = "null";
+        String paymentReference = "null";
+
+        // Checks if a student exists before retrieving the student number
+        if (student != null) {
+            studentNumber = student.getStudentNumber();
+        }
+
+        // Checks if a tutor exists before retrieving the tutor ID
+        if (tutor != null) {
+            tutorId = tutor.getTutorId();
+        }
+
+        // Checks if a payment exists before retrieving the payment reference
+        if (payment != null) {
+            paymentReference = payment.getPaymentRef();
+        }
+
         return "Booking" +
                 "\nBooking Id: " + bookingId +
                 "\nSubject Code: " + subjectCode +
                 "\nSession Type: " + sessionType +
                 "\nDuration: " + duration +
                 "\nDate: " + date +
-                "\nStudent Number: " + student.getStudentNumber() +
-                "\nTutor Id: " + tutor.getTutorId();
+                "\nStudent Number: " + studentNumber +
+                "\nTutor Id: " + tutorId +
+                "\nPayment Reference: " + paymentReference;
     }
 
     public static class Builder {
+
         private String bookingId;
         private String subjectCode;
         private String sessionType;
@@ -115,7 +146,6 @@ public class Booking {
             this.tutor = booking.tutor;
             return this;
         }
-
 
         public Builder setBookingId(String bookingId) {
             this.bookingId = bookingId;

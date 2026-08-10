@@ -7,7 +7,7 @@ Date: 13/03/2026
  */
 
 import jakarta.persistence.*;
-
+import com.fasterxml.jackson.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 @Entity
@@ -21,6 +21,7 @@ public class Student {
     private String password;
     private String levelOfStudy;
     @OneToMany(mappedBy ="student", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonManagedReference("student-bookings")
     private List<Booking> bookings = new ArrayList<>();
 
     protected Student(){
