@@ -1,14 +1,24 @@
 package za.ac.cput.controller;
-import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import za.ac.cput.domain.Admin;
 import za.ac.cput.factory.AdminFactory;
+import za.ac.cput.repository.AdminRepository;
+import za.ac.cput.service.AdminService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 
 /*
 AdminControllerTest.java
@@ -18,98 +28,221 @@ Date: 28/06/2026
  */
 
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestMethodOrder(MethodOrderer.MethodName.class)
+@SpringBootTest
+@AutoConfigureMockMvc
+@TestPropertySource(locations = "classpath:application.properties")
+@Transactional
 class AdminControllerTest {
 
-    private static Admin admin;
+    @Autowired
+    private MockMvc mockMvc;
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    private ObjectMapper objectMapper;
 
-    private static final String BASE_URL = "http://localhost:8080/tutoring/admin";
+    @Autowired
+    private AdminService adminService;
 
-    @BeforeAll
-    public static void setUp() {
+    @Autowired
+    private AdminRepository adminRepository;
+
+    private Admin admin;
+    private String adminId;
+    private String email;
+    private String password;
+
+    @BeforeEach
+    void setUp() {
+        adminRepository.deleteAll();
+
+        adminId = "ADM001";
+        email = "john.doe@example.com";
+        password = "SecurePass123";
+
         admin = AdminFactory.createAdmin(
-                "A02",
-                "SystemAdmin"
+                adminId,
+                "John",
+                "Doe",
+                email,
+                password,
+                "ADMIN"
         );
     }
 
     @Test
-    void a_create() {
-        String url = BASE_URL + "/create";
-        Admin createdAdmin = this.restTemplate.postForObject(url, admin, Admin.class);
-
-        assertNotNull(createdAdmin);
-        assertEquals(admin.getAdminId(), createdAdmin.getAdminId());
-
-        admin = createdAdmin;
-        System.out.println("Created Admin: " + createdAdmin);
+    @DisplayName("register admin successfully")
+    void testRegisterAdmin_Success() throws Exception {
+        mockMvc.perform(post("/admin/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(admin)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.adminId", is(adminId)))
+                .andExpect(jsonPath("$.email", is(email)))
+                .andExpect(jsonPath("$.firstName", is("John")))
+                .andExpect(jsonPath("$.lastName", is("Doe")))
+                .andExpect(jsonPath("$.role", is("ADMIN")))
+                .andExpect(jsonPath("$.createdAt", notNullValue()));
     }
 
     @Test
-    void b_read() {
-        String url = BASE_URL + "/read/" + admin.getAdminId();
+    @DisplayName("return 400 when registering admin with invalid data")
+    void testRegisterAdmin_InvalidData_ThrowsException() throws Exception {
+        Admin invalidAdmin = AdminFactory.createAdmin(
+                null, // Invalid adminId
+                "John",
+                "Doe",
+                email,
+                password,
+                "ADMIN"
+        );
 
-        ResponseEntity<Admin> response =
-                this.restTemplate.getForEntity(url, Admin.class);
-
-        assertNotNull(response.getBody());
-        assertEquals(admin.getAdminId(), response.getBody().getAdminId());
-
-        System.out.println("Read Admin: " + response.getBody());
+        mockMvc.perform(post("/admin/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidAdmin)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    void c_update() {
-        Admin updatedAdmin = new Admin.Builder()
-                .copy(admin)
-                .setRole("DatabaseAdmin")
-                .build();
+    @DisplayName("login admin successfully")
+    void testLoginAdmin_Success() throws Exception {
+        adminService.create(admin);
 
-        String url = BASE_URL + "/update";
-        this.restTemplate.put(url, updatedAdmin);
+        mockMvc.perform(post("/admin/login")
+                        .param("email", email)
+                        .param("password", password))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.adminId", is(adminId)))
+                .andExpect(jsonPath("$.email", is(email)))
+                .andExpect(jsonPath("$.lastLogin", notNullValue()));
+    }
 
-        ResponseEntity<Admin> response = restTemplate.getForEntity(
-                BASE_URL + "/read/" + updatedAdmin.getAdminId(),
-                Admin.class);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
+    @Test
+    @DisplayName("get all admins successfully")
+    void testGetAllAdmins_Success() throws Exception {
+        adminService.create(admin);
 
-        System.out.println("Updated Admin: " + response.getBody());
+        Admin admin2 = AdminFactory.createAdmin(
+                "ADM002",
+                "Jane",
+                "Smith",
+                "jane.smith@example.com",
+                "Password456",
+                "SUPER_ADMIN"
+        );
+        adminService.create(admin2);
+
+        mockMvc.perform(get("/admin/admins"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].adminId", is(adminId)))
+                .andExpect(jsonPath("$[1].adminId", is("ADM002")));
     }
 
     @Test
-    void d_getAll() {
-        String url = BASE_URL + "/getAll";
+    @DisplayName("get admin by id successfully")
+    void testGetAdminById_Success() throws Exception {
+        adminService.create(admin);
 
-        ResponseEntity<Admin[]> response =
-                this.restTemplate.getForEntity(url, Admin[].class);
-
-        assertNotNull(response.getBody());
-
-        System.out.println("Get All Admins:");
-        for (Admin admin : response.getBody()) {
-            System.out.println(admin);
-        }
+        mockMvc.perform(get("/admin/admins/{adminId}", adminId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.adminId", is(adminId)))
+                .andExpect(jsonPath("$.email", is(email)))
+                .andExpect(jsonPath("$.firstName", is("John")));
     }
 
     @Test
-    @Disabled
-    void e_delete() {
-        String url = BASE_URL + "/delete/" + admin.getAdminId();
+    @DisplayName("return 404 when admin not found by id")
+    void testGetAdminById_NotFound_Returns404() throws Exception {
+        String nonExistentId = "NONEXISTENT";
 
-        this.restTemplate.delete(url);
+        mockMvc.perform(get("/admin/admins/{adminId}", nonExistentId))
+                .andExpect(status().isNotFound());
+    }
 
-        ResponseEntity<Admin> response = this.restTemplate.getForEntity(
-                BASE_URL + "/read/" + admin.getAdminId(),
-                Admin.class);
+    @Test
+    @DisplayName("update admin successfully")
+    void testUpdateAdmin_Success() throws Exception {
+        adminService.create(admin);
 
-        assertNull(response.getBody());
+        Admin updatedAdmin = AdminFactory.createAdmin(
+                adminId,
+                "Jonathan",
+                "Smith",
+                "jonathan.smith@example.com",
+                "NewPassword123",
+                "SUPER_ADMIN"
+        );
 
-        System.out.println("Deleted Admin: true");
+        mockMvc.perform(put("/admin/admins")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updatedAdmin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.adminId", is(adminId)))
+                .andExpect(jsonPath("$.firstName", is("Jonathan")))
+                .andExpect(jsonPath("$.lastName", is("Smith")))
+                .andExpect(jsonPath("$.email", is("jonathan.smith@example.com")))
+                .andExpect(jsonPath("$.role", is("SUPER_ADMIN")));
+    }
+
+
+    @Test
+    @DisplayName("delete admin successfully")
+    void testDeleteAdmin_Success() throws Exception {
+        adminService.create(admin);
+
+        mockMvc.perform(delete("/admin/admins/{adminId}", adminId))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("return 404 when deleting non-existent admin")
+    void testDeleteAdmin_NotFound_Returns404() throws Exception {
+        String nonExistentId = "NONEXISTENT";
+
+        mockMvc.perform(delete("/admin/admins/{adminId}", nonExistentId))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("get dashboard successfully")
+    void testGetDashboard_Success() throws Exception {
+        // Create test data
+        adminService.create(admin);
+
+        mockMvc.perform(get("/admin/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stats", notNullValue()))
+                .andExpect(jsonPath("$.tutorSubjectSummaries", notNullValue()))
+                .andExpect(jsonPath("$.studentBookingSummaries", notNullValue()));
+    }
+
+    @Test
+    @DisplayName("get dashboard stats successfully")
+    void testGetDashboardStats_Success() throws Exception {
+        adminService.create(admin);
+
+        mockMvc.perform(get("/admin/dashboard/stats"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalStudents", is(0)))
+                .andExpect(jsonPath("$.totalTutors", is(0)))
+                .andExpect(jsonPath("$.totalSubjects", is(0)))
+                .andExpect(jsonPath("$.totalBookings", is(0)));
+    }
+
+    @Test
+    @DisplayName("get tutor subject summaries successfully")
+    void testGetTutorSubjectSummaries_Success() throws Exception {
+        mockMvc.perform(get("/admin/dashboard/tutors-subjects"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", notNullValue()));
+    }
+
+    @Test
+    @DisplayName("get student booking summaries successfully")
+    void testGetStudentBookingSummaries_Success() throws Exception {
+        mockMvc.perform(get("/admin/dashboard/students-bookings"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", notNullValue()));
     }
 }
