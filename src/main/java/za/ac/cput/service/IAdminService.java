@@ -11,4 +11,10 @@ Date: 17/06/2026
 
 public interface IAdminService extends IService<Admin, String> {
     List<Admin> getAll();
+
+    Admin login(String email, String password);
+    Admin findByEmail(String email);
+    boolean existsByEmail(String email);
+    List<Admin> getByRole(String role);
+
 }
